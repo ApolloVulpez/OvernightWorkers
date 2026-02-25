@@ -48,6 +48,9 @@
     <Reference Include="MyBox">
       <HintPath>..\..\..\..\SteamLibrary\steamapps\common\Supermarket Simulator\BepInEx\interop\MyBox.dll</HintPath>
     </Reference>
+    <Reference Include="PhotonUnityNetworking">
+      <HintPath>..\..\..\..\SteamLibrary\steamapps\common\Supermarket Simulator\BepInEx\interop\PhotonUnityNetworking.dll</HintPath>
+    </Reference>
     <Reference Include="UnityEngine">
       <HintPath>..\..\..\..\SteamLibrary\steamapps\common\Supermarket Simulator\BepInEx\interop\UnityEngine.dll</HintPath>
     </Reference>

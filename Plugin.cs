@@ -6,16 +6,20 @@ using System.Collections.Generic;
 using Lean.Pool;
 using BepInEx.Configuration;
 using UnityEngine;
+using MyBox;
 
 namespace OvernightWorkers;
 
-[BepInPlugin("OvernightWorkers", "OvernightWorkers", "2.0.0")]
+[BepInPlugin("OvernightWorkers", "OvernightWorkers", "2.2.1")]
 [HarmonyPatch]
 public class Plugin : BasePlugin
 {
     internal static new ManualLogSource Log;
     public static ConfigEntry<bool> consolidateBoxes;
     public static ConfigEntry<bool> sortRacks;
+    public static List<RackSlot> modifiedSlots = new List<RackSlot>();
+    public static List<Restocker> restockers = new List<Restocker>();
+    public static PlayerManager playerManager;
     public override void Load()
     {
         // Plugin startup logic
@@ -81,6 +85,7 @@ public class Plugin : BasePlugin
                     }
                     int totalAdded = 0;
 
+
                     while (needed > 0)
                     {
                         RackSlot sourceSlot = null;
@@ -91,28 +96,32 @@ public class Plugin : BasePlugin
                             if (slot.m_Boxes == null || slot.m_Boxes.Count == 0) continue;
                             var lastBox = slot.m_Boxes[slot.m_Boxes.Count - 1];
                             if (lastBox == null || lastBox.m_Data == null) continue;
-                            if (lastBox.m_Data.ProductCount <= 0) continue;
+                            if (lastBox.Data.ProductCount <= 0) continue;
                             sourceSlot = slot;
                             sourceBox = lastBox;
                             break;
                         }
 
                         if (sourceSlot == null || sourceBox == null) break;
-                        int takeCount = System.Math.Min(needed, sourceBox.m_Data.ProductCount);
+                        int takeCount = System.Math.Min(needed, sourceBox.Data.ProductCount);
                         totalAdded += takeCount;
-                        if (sourceBox.m_Data.ProductCount <= takeCount)
+                        if (sourceBox.Data.ProductCount <= takeCount)
                         {
-                            sourceSlot.TakeBoxFromRack();
-                            InventoryManager.Instance.RemoveBox(sourceBox.Data);
-                            LeanPool.Despawn(sourceBox);
-                            sourceBox.ResetBox();
-                            UnityEngine.Object.Destroy(sourceBox.gameObject);
+                            Box box = sourceSlot.TakeBoxFromRack();
+                            InventoryManager.Instance.RemoveBox(box.Data);
+                            Log.LogWarning($"Box {box.Product.ProductName} sent to trasher");
+                            CleanUpBox(box);
+                            modifiedSlots.Add(sourceSlot);
                         }
                         else
                         {
-                            sourceBox.m_Data.ProductCount -= takeCount;
-                            sourceBox.DespawnProducts();
-                            sourceBox.SpawnProducts();
+                            InventoryManager.Instance.RemoveBox(sourceBox.Data);
+                            var data = sourceBox.Data;
+                            data.ProductCount -= takeCount;
+                            sourceBox.Data = data;
+                            InventoryManager.Instance.AddBox(sourceBox.Data);
+                            sourceBox.RefreshSpawnedProducts();
+                            modifiedSlots.Add(sourceSlot);
                         }
                         needed -= takeCount;
                         productNeedsMore = true;
@@ -129,18 +138,40 @@ public class Plugin : BasePlugin
                     }
                 }
             }
+            foreach(var slot in modifiedSlots)
+            {
+                slot.RefreshLabel();
+                slot.RePositionBoxes();
+            }
+            modifiedSlots.Clear();
         }
         Log.LogWarning("[RestockStore] Store Restocking Complete");
     }
 
 
 
-    [HarmonyPatch(typeof(DayCycleManager), "FinishTheDay")]
+    public static void CleanUpBox(Box box)
+    {
+        playerManager.LocalPlayer.PlayerInteraction.m_CurrentInteractable = MyAlgorithms.As<IInteractable>(box);
+        playerManager.LocalPlayer.PlayerInteraction.Interact(false, false);
+        playerManager.LocalPlayer.BoxInteraction.ThrowIntoTrashBin();
+        Log.LogWarning($"Box {box.Product} trashed");
+    }
+
+    [HarmonyPatch(typeof(PlayerManager), "Awake")]
     [HarmonyPostfix]
+    public static void PlayerManagerPatch(PlayerManager __instance)
+    {
+        playerManager = __instance;
+    }
+
+    [HarmonyPatch(typeof(DayCycleManager), "FinishTheDay")]
+    [HarmonyPrefix]
     public static void RunRestock()
     {
         RestockStore();
     }
+
 
 
 

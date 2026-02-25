@@ -91,3 +91,4 @@ K:\Games and other\Modding\Supermarket Simulator\OvernightWorkers\bin\Debug\net6
 K:\Games and other\Modding\Supermarket Simulator\OvernightWorkers\bin\Debug\net6.0\UnityEngine.InputForUIModule.dll
 K:\Games and other\Modding\Supermarket Simulator\OvernightWorkers\bin\Debug\net6.0\UnityEngine.JSONSerializeModule.dll
 K:\Games and other\Modding\Supermarket Simulator\OvernightWorkers\bin\Debug\net6.0\UnityEngine.SubsystemsModule.dll
+K:\Games and other\Modding\Supermarket Simulator\OvernightWorkers\obj\Debug\net6.0\OvernightWorkers.sourcelink.json

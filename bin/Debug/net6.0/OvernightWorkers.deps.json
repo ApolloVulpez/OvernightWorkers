@@ -18,8 +18,10 @@
           "LeanCommon": "0.0.0.0",
           "LeanPool": "0.0.0.0",
           "MyBox": "0.0.0.0",
+          "PhotonUnityNetworking": "0.0.0.0",
           "UnityEngine.CoreModule": "0.0.0.0",
-          "UnityEngine": "0.0.0.0"
+          "UnityEngine": "0.0.0.0",
+          "UnityEngine.InputLegacyModule": "0.0.0.0"
         },
         "runtime": {
           "OvernightWorkers.dll": {}
@@ -680,6 +682,14 @@
           }
         }
       },
+      "PhotonUnityNetworking/0.0.0.0": {
+        "runtime": {
+          "PhotonUnityNetworking.dll": {
+            "assemblyVersion": "0.0.0.0",
+            "fileVersion": "0.0.0.0"
+          }
+        }
+      },
       "UnityEngine.CoreModule/0.0.0.0": {
         "runtime": {
           "UnityEngine.CoreModule.dll": {
@@ -691,6 +701,14 @@
       "UnityEngine/0.0.0.0": {
         "runtime": {
           "UnityEngine.dll": {
+            "assemblyVersion": "0.0.0.0",
+            "fileVersion": "0.0.0.0"
+          }
+        }
+      },
+      "UnityEngine.InputLegacyModule/0.0.0.0": {
+        "runtime": {
+          "UnityEngine.InputLegacyModule.dll": {
             "assemblyVersion": "0.0.0.0",
             "fileVersion": "0.0.0.0"
           }
@@ -731,14 +749,6 @@
       "UnityEngine.AIModule/0.0.0.0": {
         "runtime": {
           "UnityEngine.AIModule.dll": {
-            "assemblyVersion": "0.0.0.0",
-            "fileVersion": "0.0.0.0"
-          }
-        }
-      },
-      "PhotonUnityNetworking/0.0.0.0": {
-        "runtime": {
-          "PhotonUnityNetworking.dll": {
             "assemblyVersion": "0.0.0.0",
             "fileVersion": "0.0.0.0"
           }
@@ -907,14 +917,6 @@
       "UnityEngine.WindModule/0.0.0.0": {
         "runtime": {
           "UnityEngine.WindModule.dll": {
-            "assemblyVersion": "0.0.0.0",
-            "fileVersion": "0.0.0.0"
-          }
-        }
-      },
-      "UnityEngine.InputLegacyModule/0.0.0.0": {
-        "runtime": {
-          "UnityEngine.InputLegacyModule.dll": {
             "assemblyVersion": "0.0.0.0",
             "fileVersion": "0.0.0.0"
           }
@@ -1904,12 +1906,22 @@
       "serviceable": false,
       "sha512": ""
     },
+    "PhotonUnityNetworking/0.0.0.0": {
+      "type": "reference",
+      "serviceable": false,
+      "sha512": ""
+    },
     "UnityEngine.CoreModule/0.0.0.0": {
       "type": "reference",
       "serviceable": false,
       "sha512": ""
     },
     "UnityEngine/0.0.0.0": {
+      "type": "reference",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "UnityEngine.InputLegacyModule/0.0.0.0": {
       "type": "reference",
       "serviceable": false,
       "sha512": ""
@@ -1935,11 +1947,6 @@
       "sha512": ""
     },
     "UnityEngine.AIModule/0.0.0.0": {
-      "type": "reference",
-      "serviceable": false,
-      "sha512": ""
-    },
-    "PhotonUnityNetworking/0.0.0.0": {
       "type": "reference",
       "serviceable": false,
       "sha512": ""
@@ -2045,11 +2052,6 @@
       "sha512": ""
     },
     "UnityEngine.WindModule/0.0.0.0": {
-      "type": "reference",
-      "serviceable": false,
-      "sha512": ""
-    },
-    "UnityEngine.InputLegacyModule/0.0.0.0": {
       "type": "reference",
       "serviceable": false,
       "sha512": ""
