@@ -10,7 +10,7 @@ using MyBox;
 
 namespace OvernightWorkers;
 
-[BepInPlugin("OvernightWorkers", "OvernightWorkers", "2.2.1")]
+[BepInPlugin("OvernightWorkers", "OvernightWorkers", "2.2.2")]
 [HarmonyPatch]
 public class Plugin : BasePlugin
 {
@@ -76,9 +76,9 @@ public class Plugin : BasePlugin
                     if (!indexedRackSlots.TryGetValue(id, out var slots)) continue;
                     if (slots.Count == 0) continue;
                     int slotsWithBoxes = 0;
-                    foreach (var s in slots)
+                    foreach (var slot in slots)
                     {
-                        if (s != null && s.m_Boxes != null && s.m_Boxes.Count > 0)
+                        if (slot != null && slot.m_Boxes != null && slot.m_Boxes.Count > 0)
                         {
                             slotsWithBoxes++;
                         }
@@ -107,21 +107,18 @@ public class Plugin : BasePlugin
                         totalAdded += takeCount;
                         if (sourceBox.Data.ProductCount <= takeCount)
                         {
-                            Box box = sourceSlot.TakeBoxFromRack();
-                            InventoryManager.Instance.RemoveBox(box.Data);
-                            Log.LogWarning($"Box {box.Product.ProductName} sent to trasher");
-                            CleanUpBox(box);
-                            modifiedSlots.Add(sourceSlot);
+                            var boxData = sourceBox.Data;
+                            sourceSlot.m_Boxes.Remove(sourceBox);
+                            sourceSlot.m_Data.RackedBoxDatas.Remove(boxData);
+                            if (sourceSlot.m_Data.BoxCount <= 0) sourceSlot.m_Data.Clear();
+                            CleanUpBox(sourceBox);
                         }
                         else
                         {
-                            InventoryManager.Instance.RemoveBox(sourceBox.Data);
                             var data = sourceBox.Data;
                             data.ProductCount -= takeCount;
                             sourceBox.Data = data;
-                            InventoryManager.Instance.AddBox(sourceBox.Data);
                             sourceBox.RefreshSpawnedProducts();
-                            modifiedSlots.Add(sourceSlot);
                         }
                         needed -= takeCount;
                         productNeedsMore = true;
@@ -138,24 +135,16 @@ public class Plugin : BasePlugin
                     }
                 }
             }
-            foreach(var slot in modifiedSlots)
-            {
-                slot.RefreshLabel();
-                slot.RePositionBoxes();
-            }
-            modifiedSlots.Clear();
         }
         Log.LogWarning("[RestockStore] Store Restocking Complete");
     }
-
-
 
     public static void CleanUpBox(Box box)
     {
         playerManager.LocalPlayer.PlayerInteraction.m_CurrentInteractable = MyAlgorithms.As<IInteractable>(box);
         playerManager.LocalPlayer.PlayerInteraction.Interact(false, false);
         playerManager.LocalPlayer.BoxInteraction.ThrowIntoTrashBin();
-        Log.LogWarning($"Box {box.Product} trashed");
+        UnityEngine.Object.Destroy(box.gameObject);
     }
 
     [HarmonyPatch(typeof(PlayerManager), "Awake")]
