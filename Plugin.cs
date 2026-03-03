@@ -10,7 +10,7 @@ using MyBox;
 
 namespace OvernightWorkers;
 
-[BepInPlugin("OvernightWorkers", "OvernightWorkers", "2.2.2")]
+[BepInPlugin("OvernightWorkers", "OvernightWorkers", "2.2.3")]
 [HarmonyPatch]
 public class Plugin : BasePlugin
 {
@@ -37,7 +37,7 @@ public class Plugin : BasePlugin
     {
         var productsInInventory = new List<int>();
 
-        foreach (var key in InventoryManager.Instance.Products.Keys)
+        foreach (var key in InventoryManager.Instance.m_DisplayedProducts.Keys)
         {
             if (key != 0) productsInInventory.Add(key);
         }
