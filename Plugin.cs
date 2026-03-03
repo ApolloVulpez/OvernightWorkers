@@ -10,7 +10,7 @@ using MyBox;
 
 namespace OvernightWorkers;
 
-[BepInPlugin("OvernightWorkers", "OvernightWorkers", "2.2.3")]
+[BepInPlugin("OvernightWorkers", "OvernightWorkers", "2.2.4")]
 [HarmonyPatch]
 public class Plugin : BasePlugin
 {
@@ -115,9 +115,9 @@ public class Plugin : BasePlugin
                         }
                         else
                         {
-                            var data = sourceBox.Data;
-                            data.ProductCount -= takeCount;
-                            sourceBox.Data = data;
+                            
+                            sourceBox.Data.ProductCount -= takeCount;
+                            
                             sourceBox.RefreshSpawnedProducts();
                         }
                         needed -= takeCount;
