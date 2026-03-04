@@ -7,10 +7,11 @@ using Lean.Pool;
 using BepInEx.Configuration;
 using UnityEngine;
 using MyBox;
+using Photon.Pun;
 
 namespace OvernightWorkers;
 
-[BepInPlugin("OvernightWorkers", "OvernightWorkers", "2.2.4")]
+[BepInPlugin("OvernightWorkers", "OvernightWorkers", "2.3.4")]
 [HarmonyPatch]
 public class Plugin : BasePlugin
 {
@@ -25,6 +26,7 @@ public class Plugin : BasePlugin
         // Plugin startup logic
         Log = base.Log;
         DoTheThing();
+        consolidateBoxes = Config.Bind<bool>("OvernightWorkers", "Consolidate boxes in racks", false, "Enabling this option will make all boxes in racks take up less space by combining them together. So if you have a box of 4 and a box of 3, in a box that holds 10, it'll make it 1 box of 7.");
         Log.LogInfo($"Plugin OvernightWorkers is loaded!");
     }
     public static void DoTheThing()
@@ -112,6 +114,7 @@ public class Plugin : BasePlugin
                             sourceSlot.m_Data.RackedBoxDatas.Remove(boxData);
                             if (sourceSlot.m_Data.BoxCount <= 0) sourceSlot.m_Data.Clear();
                             CleanUpBox(sourceBox);
+                            sourceSlot.RefreshLabel();
                         }
                         else
                         {
@@ -119,6 +122,7 @@ public class Plugin : BasePlugin
                             sourceBox.Data.ProductCount -= takeCount;
                             
                             sourceBox.RefreshSpawnedProducts();
+                            sourceSlot.RefreshLabel();
                         }
                         needed -= takeCount;
                         productNeedsMore = true;
@@ -137,6 +141,63 @@ public class Plugin : BasePlugin
             }
         }
         Log.LogWarning("[RestockStore] Store Restocking Complete");
+    }
+    public static void ConsolidateRacks()
+    {
+        Dictionary<int, List<Box>> boxesByProduct = new Dictionary<int, List<Box>>();
+        List<Box> emptyBoxes = new List<Box>();
+        foreach (var pair in RackManager.Instance.m_RackSlots)
+        {
+            foreach (var slot in pair.Value)
+            {
+                if (slot == null || slot.m_Boxes == null || slot.m_Boxes.Count == 0) continue;
+
+                foreach (var box in slot.m_Boxes)
+                {
+                    if (box == null || box.m_Data == null || box.Data.ProductCount <= 0) continue;
+
+                    int productId = box.Data.ProductID;
+                    if (productId == 0) continue;
+
+                    if (!boxesByProduct.ContainsKey(productId))
+                        boxesByProduct[productId] = new List<Box>();
+
+                    boxesByProduct[productId].Add(box);
+                }
+            }
+        }
+        foreach (var pair in boxesByProduct)
+        {
+            var boxes = pair.Value;
+
+            int totalProducts = 0;
+            foreach (var box in boxes) totalProducts += box.Data.ProductCount;
+
+            foreach (var box in boxes)
+            {
+                int fill = System.Math.Min(totalProducts, box.MaxProductCount);
+                box.Data.ProductCount = fill;
+                totalProducts -= fill;
+
+                if (fill == 0)
+                    emptyBoxes.Add(box);
+            }
+        }
+        foreach (Box box in emptyBoxes)
+        {
+            RackSlot sourceSlot = box.transform.GetComponentInParent<RackSlot>();
+            if (sourceSlot == null) continue;
+
+            var boxData = box.Data;
+            sourceSlot.m_Boxes.Remove(box);
+            sourceSlot.m_Data.RackedBoxDatas.Remove(boxData);
+            if (sourceSlot.m_Data.BoxCount <= 0) sourceSlot.m_Data.Clear();
+            
+            Log.LogWarning($"{box} sent to trasher. Idk what one I need to see so. {box.BoxID}. {box.Product}. {box.Product.ID}");
+            CleanUpBox(box);
+            sourceSlot.RefreshLabel();
+
+        }
     }
 
     public static void CleanUpBox(Box box)
@@ -159,127 +220,137 @@ public class Plugin : BasePlugin
     public static void RunRestock()
     {
         RestockStore();
+        if(consolidateBoxes.Value) ConsolidateRacks();
     }
 
-
-
-
-    //Debug functions
-/*    public static void StockHalfer()
-    {
-        var manager = RackManager.Instance;
-        if (manager == null || manager.m_Racks == null)
-        {
-            Log.LogWarning("[StockHalfer] RackManager not found!");
-            return;
-        }
-
-        int boxesProcessed = 0;
-
-        foreach (var rack in manager.m_Racks)
-        {
-            if (rack == null || rack.RackSlots == null) continue;
-
-            foreach (var slot in rack.RackSlots)
-            {
-                if (slot == null || slot.Boxes == null) continue;
-
-                foreach (var box in slot.Boxes)
-                {
-                    if (box == null || box.m_Data == null) continue;
-
-                    int currentCount = box.m_Data.ProductCount;
-                    if (currentCount <= 0) continue;
-
-                    int newCount = currentCount / 2;
-
-                    Log.LogWarning($"[StockHalfer] Box {box.BoxID}: {currentCount} -> {newCount} products");
-
-                    box.m_Data.ProductCount = newCount;
-                    box.DespawnProducts();
-                    box.SpawnProducts();
-
-                    boxesProcessed++;
-                }
-
-                slot.SetLabel();
-            }
-        }
-
-        Log.LogWarning($"[StockHalfer] Halved products in {boxesProcessed} boxes");
-    }
-    public static void DeleteAllBoxes()
-    {
-        RackManager manager = RackManager.Instance;
-        List<RackSlot> slots = new List<RackSlot>();
-        var racks = manager.m_Racks;
-        if (racks == null)
-        {
-            Log.LogWarning("[SortRacks] No racks found!");
-            return;
-        }
-        foreach (var rack in racks)
-        {
-            if (rack == null || rack.RackSlots == null) continue;
-            foreach (var slot in rack.RackSlots)
-            {
-                if (slot != null)
-                {
-                    slots.Add(slot);
-                }
-            }
-        }
-
-        foreach (RackSlot slot in slots)
-        {
-
-            while (slot.Boxes.Count > 0)
-            {
-                Box box = slot.Boxes[0]; 
-                slot.TakeBoxFromRack();
-                InventoryManager.Instance.RemoveBox(box.Data);
-                box.ResetBox();
-                LeanPool.Despawn(box);
-                UnityEngine.Object.Destroy(box.gameObject);
-                Log.LogWarning($"The while loop in delete boxes is still going"[0]);
-            }
-            slot.ClearLabel();
-        }
-
-        Log.LogWarning("Deleted all boxes from racks");
-    }
-
-
-    [HarmonyPatch(typeof(PlayerInteraction), "Update")]
+/*    [HarmonyPatch(typeof(PlayerInteraction), "Update")]
     [HarmonyPostfix]
     public static void RestockTest(PlayerInteraction __instance)
     {
         if (Input.GetKeyDown(KeyCode.L))
         {
-            RestockStore();
-            Log.LogInfo("InstantRestock ran");
-        }
-    }
-
-    [HarmonyPatch(typeof(PlayerInteraction), "Update")]
-    [HarmonyPostfix]
-    public static void RestockTest6(PlayerInteraction __instance)
-    {
-        if (Input.GetKeyDown(KeyCode.G))
-        {
-            StockHalfer();
-            Log.LogInfo("Consolidate Racks ran");
-        }
-    }
-    [HarmonyPatch(typeof(PlayerInteraction), "Update")]
-    [HarmonyPostfix]
-    public static void RestockTest4(PlayerInteraction __instance)
-    {
-        if (Input.GetKeyDown(KeyCode.H))
-        {
-            DeleteAllBoxes();
-            Log.LogInfo("DeletedBoxes");
+            ConsolidateRacks();
+            Log.LogInfo("Consolidate ran");
         }
     }*/
+
+
+    //Debug functions
+    /*    public static void StockHalfer()
+        {
+            var manager = RackManager.Instance;
+            if (manager == null || manager.m_Racks == null)
+            {
+                Log.LogWarning("[StockHalfer] RackManager not found!");
+                return;
+            }
+
+            int boxesProcessed = 0;
+
+            foreach (var rack in manager.m_Racks)
+            {
+                if (rack == null || rack.RackSlots == null) continue;
+
+                foreach (var slot in rack.RackSlots)
+                {
+                    if (slot == null || slot.Boxes == null) continue;
+
+                    foreach (var box in slot.Boxes)
+                    {
+                        if (box == null || box.m_Data == null) continue;
+
+                        int currentCount = box.m_Data.ProductCount;
+                        if (currentCount <= 0) continue;
+
+                        int newCount = currentCount / 2;
+
+                        Log.LogWarning($"[StockHalfer] Box {box.BoxID}: {currentCount} -> {newCount} products");
+
+                        box.m_Data.ProductCount = newCount;
+                        box.DespawnProducts();
+                        box.SpawnProducts();
+
+                        boxesProcessed++;
+                    }
+
+                    slot.SetLabel();
+                }
+            }
+
+            Log.LogWarning($"[StockHalfer] Halved products in {boxesProcessed} boxes");
+        }
+        public static void DeleteAllBoxes()
+        {
+            RackManager manager = RackManager.Instance;
+            List<RackSlot> slots = new List<RackSlot>();
+            var racks = manager.m_Racks;
+            if (racks == null)
+            {
+                Log.LogWarning("[SortRacks] No racks found!");
+                return;
+            }
+            foreach (var rack in racks)
+            {
+                if (rack == null || rack.RackSlots == null) continue;
+                foreach (var slot in rack.RackSlots)
+                {
+                    if (slot != null)
+                    {
+                        slots.Add(slot);
+                    }
+                }
+            }
+
+            foreach (RackSlot slot in slots)
+            {
+
+                while (slot.Boxes.Count > 0)
+                {
+                    Box box = slot.Boxes[0];
+                    slot.TakeBoxFromRack();
+                    InventoryManager.Instance.RemoveBox(box.Data);
+                    box.ResetBox();
+                    LeanPool.Despawn(box);
+                    UnityEngine.Object.Destroy(box.gameObject);
+                    Log.LogWarning($"The while loop in delete boxes is still going"[0]);
+                }
+                slot.ClearLabel();
+            }
+
+            Log.LogWarning("Deleted all boxes from racks");
+        }
+
+
+        [HarmonyPatch(typeof(PlayerInteraction), "Update")]
+        [HarmonyPostfix]
+        public static void RestockTest(PlayerInteraction __instance)
+        {
+            if (Input.GetKeyDown(KeyCode.L))
+            {
+                RestockStore();
+                Log.LogInfo("InstantRestock ran");
+            }
+        }
+
+        [HarmonyPatch(typeof(PlayerInteraction), "Update")]
+        [HarmonyPostfix]
+        public static void RestockTest6(PlayerInteraction __instance)
+        {
+            if (Input.GetKeyDown(KeyCode.G))
+            {
+                StockHalfer();
+                Log.LogInfo("Consolidate Racks ran");
+            }
+        }
+        [HarmonyPatch(typeof(PlayerInteraction), "Update")]
+        [HarmonyPostfix]
+        public static void RestockTest4(PlayerInteraction __instance)
+        {
+            if (Input.GetKeyDown(KeyCode.H))
+            {
+                DeleteAllBoxes();
+                Log.LogInfo("DeletedBoxes");
+            }
+        }*/
 }
 
