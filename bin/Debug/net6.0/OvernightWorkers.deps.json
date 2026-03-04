@@ -21,7 +21,8 @@
           "PhotonUnityNetworking": "0.0.0.0",
           "UnityEngine.CoreModule": "0.0.0.0",
           "UnityEngine": "0.0.0.0",
-          "UnityEngine.InputLegacyModule": "0.0.0.0"
+          "UnityEngine.InputLegacyModule": "0.0.0.0",
+          "UnityEngine.PhysicsModule": "0.0.0.0"
         },
         "runtime": {
           "OvernightWorkers.dll": {}
@@ -714,6 +715,14 @@
           }
         }
       },
+      "UnityEngine.PhysicsModule/0.0.0.0": {
+        "runtime": {
+          "UnityEngine.PhysicsModule.dll": {
+            "assemblyVersion": "0.0.0.0",
+            "fileVersion": "0.0.0.0"
+          }
+        }
+      },
       "UnityEngine.UI/1.0.0.0": {
         "runtime": {
           "UnityEngine.UI.dll": {
@@ -765,14 +774,6 @@
       "UnityEngine.AnimationModule/0.0.0.0": {
         "runtime": {
           "UnityEngine.AnimationModule.dll": {
-            "assemblyVersion": "0.0.0.0",
-            "fileVersion": "0.0.0.0"
-          }
-        }
-      },
-      "UnityEngine.PhysicsModule/0.0.0.0": {
-        "runtime": {
-          "UnityEngine.PhysicsModule.dll": {
             "assemblyVersion": "0.0.0.0",
             "fileVersion": "0.0.0.0"
           }
@@ -1002,17 +1003,17 @@
           }
         }
       },
-      "NodeCanvas/0.0.0.0": {
+      "UnityEngine.UnityWebRequestModule/0.0.0.0": {
         "runtime": {
-          "NodeCanvas.dll": {
+          "UnityEngine.UnityWebRequestModule.dll": {
             "assemblyVersion": "0.0.0.0",
             "fileVersion": "0.0.0.0"
           }
         }
       },
-      "UnityEngine.UnityWebRequestModule/0.0.0.0": {
+      "NodeCanvas/0.0.0.0": {
         "runtime": {
-          "UnityEngine.UnityWebRequestModule.dll": {
+          "NodeCanvas.dll": {
             "assemblyVersion": "0.0.0.0",
             "fileVersion": "0.0.0.0"
           }
@@ -1926,6 +1927,11 @@
       "serviceable": false,
       "sha512": ""
     },
+    "UnityEngine.PhysicsModule/0.0.0.0": {
+      "type": "reference",
+      "serviceable": false,
+      "sha512": ""
+    },
     "UnityEngine.UI/1.0.0.0": {
       "type": "reference",
       "serviceable": false,
@@ -1957,11 +1963,6 @@
       "sha512": ""
     },
     "UnityEngine.AnimationModule/0.0.0.0": {
-      "type": "reference",
-      "serviceable": false,
-      "sha512": ""
-    },
-    "UnityEngine.PhysicsModule/0.0.0.0": {
       "type": "reference",
       "serviceable": false,
       "sha512": ""
@@ -2106,12 +2107,12 @@
       "serviceable": false,
       "sha512": ""
     },
-    "NodeCanvas/0.0.0.0": {
+    "UnityEngine.UnityWebRequestModule/0.0.0.0": {
       "type": "reference",
       "serviceable": false,
       "sha512": ""
     },
-    "UnityEngine.UnityWebRequestModule/0.0.0.0": {
+    "NodeCanvas/0.0.0.0": {
       "type": "reference",
       "serviceable": false,
       "sha512": ""

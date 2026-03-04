@@ -4,6 +4,7 @@ using BepInEx.Unity.IL2CPP;
 using HarmonyLib;
 using System.Collections.Generic;
 using Lean.Pool;
+using DG.Tweening;
 using BepInEx.Configuration;
 using UnityEngine;
 using MyBox;
@@ -11,7 +12,7 @@ using Photon.Pun;
 
 namespace OvernightWorkers;
 
-[BepInPlugin("OvernightWorkers", "OvernightWorkers", "2.3.4")]
+[BepInPlugin("OvernightWorkers", "OvernightWorkers", "2.4.4")]
 [HarmonyPatch]
 public class Plugin : BasePlugin
 {
@@ -109,10 +110,11 @@ public class Plugin : BasePlugin
                         totalAdded += takeCount;
                         if (sourceBox.Data.ProductCount <= takeCount)
                         {
-                            var boxData = sourceBox.Data;
-                            sourceSlot.m_Boxes.Remove(sourceBox);
-                            sourceSlot.m_Data.RackedBoxDatas.Remove(boxData);
-                            if (sourceSlot.m_Data.BoxCount <= 0) sourceSlot.m_Data.Clear();
+                            /*                            var boxData = sourceBox.Data;
+                                                        sourceSlot.m_Boxes.Remove(sourceBox);
+                                                        sourceSlot.m_Data.RackedBoxDatas.Remove(boxData);
+                                                        if (sourceSlot.m_Data.BoxCount <= 0) sourceSlot.m_Data.Clear();*/
+                            TakeBoxPersonal(sourceBox, sourceSlot);
                             CleanUpBox(sourceBox);
                             sourceSlot.RefreshLabel();
                         }
@@ -188,20 +190,57 @@ public class Plugin : BasePlugin
             RackSlot sourceSlot = box.transform.GetComponentInParent<RackSlot>();
             if (sourceSlot == null) continue;
 
-            var boxData = box.Data;
+/*            var boxData = box.Data;
             sourceSlot.m_Boxes.Remove(box);
             sourceSlot.m_Data.RackedBoxDatas.Remove(boxData);
-            if (sourceSlot.m_Data.BoxCount <= 0) sourceSlot.m_Data.Clear();
+            if (sourceSlot.m_Data.BoxCount <= 0) sourceSlot.m_Data.Clear();*/
             
-            Log.LogWarning($"{box} sent to trasher. Idk what one I need to see so. {box.BoxID}. {box.Product}. {box.Product.ID}");
+            
+            TakeBoxPersonal(box, sourceSlot);
             CleanUpBox(box);
             sourceSlot.RefreshLabel();
 
         }
     }
-
+    private static void ResetRackSlotLabels()
+    {
+        RackManager rMan = RackManager.Instance;
+        foreach (var col in rMan.m_RackSlots)
+        {
+            foreach (RackSlot slot in col.Value)
+            {
+                slot.RefreshLabel();
+            }
+        } 
+    }
+    private static void TakeBoxPersonal(Box box, RackSlot slot)
+    {
+        if (slot.m_Data == null || slot.m_Data.BoxCount <= 0 || slot.m_Data.BoxID == -1)
+        {
+            return;
+        }
+        BoxData data = box.Data;
+        slot.m_Boxes.Remove(box);
+        slot.m_Data.RackedBoxDatas.Remove(data);
+        box.ToggleInstanced(false);
+        slot.m_Highlightable.AddOrRemoveRenderer(box.RenderersToHighlight, false);
+        InventoryManager.Instance.AddBox(box.Data);
+        if (slot.m_Data.BoxCount <= 0)
+        {
+            slot.m_Data.Clear();
+            RackManager.Instance.RemoveRackSlot(slot.m_Data.ProductID, slot);
+        }
+        if (slot.m_ColliderEnabler != null)
+        {
+            slot.m_ColliderEnabler.Kill(false);
+            box.GetComponent<Collider>().enabled = true;
+        }
+        slot.m_Label.ProductCount = slot.m_Data.TotalProductCount;
+        slot.RePositionBoxes();
+    }
     public static void CleanUpBox(Box box)
     {
+        /*Log.LogWarning($"{box} sent to trasher. Idk what one I need to see so. {box.BoxID}. {box.Product}. {box.Product.ID}");*/
         playerManager.LocalPlayer.PlayerInteraction.m_CurrentInteractable = MyAlgorithms.As<IInteractable>(box);
         playerManager.LocalPlayer.PlayerInteraction.Interact(false, false);
         playerManager.LocalPlayer.BoxInteraction.ThrowIntoTrashBin();
@@ -222,17 +261,23 @@ public class Plugin : BasePlugin
         RestockStore();
         if(consolidateBoxes.Value) ConsolidateRacks();
     }
-
-/*    [HarmonyPatch(typeof(PlayerInteraction), "Update")]
+    [HarmonyPatch(typeof(DayCycleManager), "FinishTheDay")]
     [HarmonyPostfix]
-    public static void RestockTest(PlayerInteraction __instance)
+    public static void RefreshLabels()
     {
-        if (Input.GetKeyDown(KeyCode.L))
+        ResetRackSlotLabels();
+    }
+
+    /*    [HarmonyPatch(typeof(PlayerInteraction), "Update")]
+        [HarmonyPostfix]
+        public static void RestockTest(PlayerInteraction __instance)
         {
-            ConsolidateRacks();
-            Log.LogInfo("Consolidate ran");
-        }
-    }*/
+            if (Input.GetKeyDown(KeyCode.L))
+            {
+                ResetRackSlotLabels();
+                Log.LogInfo("Refreshing Labels");
+            }
+        }*/
 
 
     //Debug functions

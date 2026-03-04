@@ -60,5 +60,8 @@
     <Reference Include="UnityEngine.InputLegacyModule">
       <HintPath>..\..\..\..\SteamLibrary\steamapps\common\Supermarket Simulator\BepInEx\interop\UnityEngine.InputLegacyModule.dll</HintPath>
     </Reference>
+    <Reference Include="UnityEngine.PhysicsModule">
+      <HintPath>..\..\..\..\SteamLibrary\steamapps\common\Supermarket Simulator\BepInEx\interop\UnityEngine.PhysicsModule.dll</HintPath>
+    </Reference>
   </ItemGroup>
 </Project>

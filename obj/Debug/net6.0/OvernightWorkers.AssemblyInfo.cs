@@ -14,7 +14,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("OvernightWorkers")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+3ac63a2d6c80ea1efb8e6879d4ef8531181a1d4c")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+9a453d954b0bf4847c9df694a919ed4c5b0c2081")]
 [assembly: System.Reflection.AssemblyProductAttribute("My first plugin")]
 [assembly: System.Reflection.AssemblyTitleAttribute("OvernightWorkers")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
